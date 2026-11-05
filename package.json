@@ -1,0 +1,18 @@
+{
+  "name": "apexpulse",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ApexPulse - Cloud & Server Health Observability Dashboard",
+  "author": "MohammedBoure",
+  "license": "ISC",
+  "scripts": {
+    "test:server": "npm --prefix server test",
+    "test:client": "npm --prefix client test",
+    "test": "npm run test:server && npm run test:client",
+    "build:server": "npm --prefix server run build",
+    "build:client": "npm --prefix client run build",
+    "build": "npm run build:server && npm run build:client",
+    "dev:server": "npm --prefix server run dev",
+    "dev:client": "npm --prefix client run dev"
+  }
+}
