@@ -1,6 +1,13 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { ServerNode, ClusterTelemetry, MetricPoint, AlertItem, LogEntry, TimeRange, ViewTab } from '../types';
 import { api, calculateTelemetry } from '../services/api';
+import { 
+  Theme, 
+  ThemeContext, 
+  getInitialTheme, 
+  applyThemeToDocument, 
+  THEME_STORAGE_KEY 
+} from './ThemeContext';
 
 interface ServerContextType {
   // Navigation & View Tab
@@ -52,6 +59,10 @@ interface ServerContextType {
   isSidebarCollapsed: boolean;
   toggleSidebar: () => void;
   setIsSidebarCollapsed: (collapsed: boolean) => void;
+
+  // Theme Management
+  theme: Theme;
+  toggleTheme: () => void;
 }
 
 const ServerContext = createContext<ServerContextType | undefined>(undefined);
@@ -93,6 +104,34 @@ export const ServerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [isPolling, setIsPolling] = useState<boolean>(true);
   const [pollingInterval, setPollingInterval] = useState<number>(2500);
   const [lastRefreshed, setLastRefreshed] = useState<Date>(new Date());
+
+  // Theme Management (coordinated with ThemeContext if available, or self-contained)
+  const existingThemeContext = useContext(ThemeContext);
+  const [internalTheme, setInternalTheme] = useState<Theme>(getInitialTheme);
+
+  const theme = existingThemeContext?.theme ?? internalTheme;
+  const toggleTheme = useCallback(() => {
+    if (existingThemeContext) {
+      existingThemeContext.toggleTheme();
+    } else {
+      setInternalTheme(prev => {
+        const next = prev === 'dark' ? 'light' : 'dark';
+        applyThemeToDocument(next);
+        try {
+          localStorage.setItem(THEME_STORAGE_KEY, next);
+        } catch (err) {
+          console.warn('Failed to save theme to localStorage:', err);
+        }
+        return next;
+      });
+    }
+  }, [existingThemeContext]);
+
+  useEffect(() => {
+    if (!existingThemeContext) {
+      applyThemeToDocument(internalTheme);
+    }
+  }, [existingThemeContext, internalTheme]);
 
   // Toggle Sidebar
   const toggleSidebar = useCallback(() => {
@@ -218,6 +257,8 @@ export const ServerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     isSidebarCollapsed,
     toggleSidebar,
     setIsSidebarCollapsed,
+    theme,
+    toggleTheme,
   };
 
   return (
@@ -234,3 +275,6 @@ export function useServerState(): ServerContextType {
   }
   return context;
 }
+
+export type { Theme } from './ThemeContext';
+export { ThemeProvider, useTheme } from './ThemeContext';

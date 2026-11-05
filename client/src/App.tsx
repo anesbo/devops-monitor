@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { ThemeProvider } from './context/ThemeContext';
 import { ServerProvider, useServerState } from './context/ServerContext';
 import { ToastProvider, useToast } from './components/AlertToast';
 import { AppLayout } from './components/layout/AppLayout';
@@ -53,13 +54,17 @@ const MainContent: React.FC = () => {
 
 export function App() {
   return (
-    <ServerProvider>
-      <ToastProvider>
-        <AppLayout>
-          <MainContent />
-        </AppLayout>
-      </ToastProvider>
-    </ServerProvider>
+    <ThemeProvider>
+      <ServerProvider>
+        <ToastProvider>
+          <div className="min-h-screen w-full bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-200">
+            <AppLayout>
+              <MainContent />
+            </AppLayout>
+          </div>
+        </ToastProvider>
+      </ServerProvider>
+    </ThemeProvider>
   );
 }
 
