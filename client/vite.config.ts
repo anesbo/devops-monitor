@@ -8,7 +8,8 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/__tests__/setup.ts'],
-    isolate: false,
+    fileParallelism: false,
+    maxWorkers: 1,
   },
   server: {
     port: 5173,
