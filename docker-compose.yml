@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: apexpulse-server
+    environment:
+      - PORT=4000
+      - DB_PATH=/data/apexpulse.db
+      - SIMULATION_INTERVAL_MS=3000
+    volumes:
+      - apexpulse-data:/data
+    ports:
+      - "4000:4000"
+    restart: unless-stopped
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: apexpulse-client
+    ports:
+      - "80:80"
+    depends_on:
+      - server
+    restart: unless-stopped
+
+volumes:
+  apexpulse-data:
