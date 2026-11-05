@@ -53,7 +53,12 @@ async function formatNodeWithTelemetry(node: NodeRecord) {
     networkOutMb,
     latencyMs: Math.round((4.0 + (cpu > 80 ? 45 : 2.5)) * 10) / 10,
     uptime: '45d 12h',
-    lastPing: snap ? new Date(snap.timestamp).toISOString() : new Date().toISOString(),
+    lastPing: node.last_seen
+      ? new Date(node.last_seen).toISOString()
+      : snap
+      ? new Date(snap.timestamp).toISOString()
+      : new Date().toISOString(),
+    last_seen: node.last_seen || (snap ? snap.timestamp : Date.now()),
     cores: node.cpu_cores,
     totalMemoryGb: node.total_ram_gb,
     healthScore,

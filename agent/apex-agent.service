@@ -1,0 +1,26 @@
+[Unit]
+Description=ApexPulse Telemetry Agent
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/apex-agent
+Environment="APEX_SERVER_URL=https://pulse.yourdomain.com"
+Environment="APEX_NODE_ID=node-prod-web-01"
+Environment="APEX_NODE_NAME=Prod Web Frontend 01"
+Environment="APEX_NODE_SECRET=your-secure-secret-token"
+Environment="APEX_NODE_REGION=us-east-1"
+Environment="APEX_INTERVAL_SEC=3"
+ExecStart=/usr/bin/python3 /opt/apex-agent/apex-agent.py
+Restart=always
+RestartSec=5s
+
+# Hardening measures
+ProtectSystem=full
+ProtectHome=true
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

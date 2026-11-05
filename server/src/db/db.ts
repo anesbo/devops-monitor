@@ -88,7 +88,8 @@ CREATE TABLE IF NOT EXISTS nodes (
   cpu_cores INTEGER NOT NULL,
   total_ram_gb REAL NOT NULL,
   tags TEXT NOT NULL DEFAULT '[]',
-  created_at INTEGER NOT NULL
+  created_at INTEGER NOT NULL,
+  last_seen INTEGER NULL
 );
 
 CREATE TABLE IF NOT EXISTS metric_snapshots (
@@ -170,6 +171,13 @@ export async function initDb(customPath?: string): Promise<void> {
   for (const stmt of statements) {
     await runQuery(stmt);
   }
+
+  // Ensure last_seen column exists on older schemas
+  try {
+    await runQuery('ALTER TABLE nodes ADD COLUMN last_seen INTEGER');
+  } catch {
+    // Column already exists
+  }
 }
 
 // ==========================================
@@ -186,8 +194,8 @@ export async function getNodeById(id: string): Promise<NodeRecord | null> {
 
 export async function createNode(node: NodeRecord): Promise<NodeRecord> {
   await runQuery(
-    `INSERT INTO nodes (id, name, hostname, ip, status, os, region, cpu_cores, total_ram_gb, tags, created_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO nodes (id, name, hostname, ip, status, os, region, cpu_cores, total_ram_gb, tags, created_at, last_seen)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       node.id,
       node.name,
@@ -199,7 +207,8 @@ export async function createNode(node: NodeRecord): Promise<NodeRecord> {
       node.cpu_cores,
       node.total_ram_gb,
       typeof node.tags === 'string' ? node.tags : JSON.stringify(node.tags),
-      node.created_at || Date.now()
+      node.created_at || Date.now(),
+      node.last_seen || Date.now()
     ]
   );
   return (await getNodeById(node.id))!;
@@ -220,7 +229,7 @@ export async function updateNode(id: string, updates: Partial<NodeRecord>): Prom
   };
 
   await runQuery(
-    `UPDATE nodes SET name = ?, hostname = ?, ip = ?, status = ?, os = ?, region = ?, cpu_cores = ?, total_ram_gb = ?, tags = ?
+    `UPDATE nodes SET name = ?, hostname = ?, ip = ?, status = ?, os = ?, region = ?, cpu_cores = ?, total_ram_gb = ?, tags = ?, last_seen = ?
      WHERE id = ?`,
     [
       updated.name,
@@ -232,6 +241,7 @@ export async function updateNode(id: string, updates: Partial<NodeRecord>): Prom
       updated.cpu_cores,
       updated.total_ram_gb,
       updated.tags,
+      updated.last_seen !== undefined ? updated.last_seen : (existing.last_seen || Date.now()),
       id
     ]
   );

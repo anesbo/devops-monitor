@@ -11,7 +11,8 @@ CREATE TABLE IF NOT EXISTS nodes (
   cpu_cores INTEGER NOT NULL,
   total_ram_gb REAL NOT NULL,
   tags TEXT NOT NULL DEFAULT '[]',
-  created_at INTEGER NOT NULL
+  created_at INTEGER NOT NULL,
+  last_seen INTEGER NULL
 );
 
 CREATE TABLE IF NOT EXISTS metric_snapshots (

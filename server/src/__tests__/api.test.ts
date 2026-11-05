@@ -214,6 +214,134 @@ describe('ApexPulse REST API Endpoint Integration Tests', () => {
       expect(res.body[0].cpu).toBe(45.0);
       expect(res.body[1].cpu).toBe(65.5);
     });
+
+    it('POST /api/metrics/ingest validates payload and ingests live server telemetry', async () => {
+      // 1. Missing nodeId
+      const badRes1 = await request(app).post('/api/metrics/ingest').send({ cpuPercent: 50 });
+      expect(badRes1.status).toBe(400);
+      expect(badRes1.body.error).toContain('nodeId');
+
+      // 2. Missing cpuPercent
+      const badRes2 = await request(app).post('/api/metrics/ingest').send({ nodeId: 'node-test' });
+      expect(badRes2.status).toBe(400);
+      expect(badRes2.body.error).toContain('cpuPercent');
+
+      // 3. Successful ingest for existing node
+      const ingestRes = await request(app)
+        .post('/api/metrics/ingest')
+        .send({
+          nodeId,
+          cpuPercent: 55.4,
+          perCoreCpu: [50.1, 60.7],
+          ramUsedGb: 18.2,
+          ramTotalGb: 32.0,
+          networkInMbps: 120.5,
+          networkOutMbps: 140.2,
+          containerTotal: 8,
+          containerRunning: 8,
+          containerFailed: 0
+        });
+
+      expect(ingestRes.status).toBe(201);
+      expect(ingestRes.body.success).toBe(true);
+      expect(ingestRes.body.nodeId).toBe(nodeId);
+      expect(ingestRes.body.healthScore).toBe(100);
+
+      // Verify node was updated with last_seen
+      const updatedNode = await request(app).get(`/api/nodes/${nodeId}`);
+      expect(updatedNode.status).toBe(200);
+      expect(updatedNode.body.last_seen).toBeDefined();
+    });
+
+    it('POST /api/metrics/ingest auto-registers node if not found and triggers alert incidents', async () => {
+      // Set an active alert rule for CPU >= 80%
+      await createAlertRule({
+        id: 'rule-high-cpu-ingest',
+        node_id: null,
+        metric_name: 'cpu',
+        operator: '>=',
+        threshold: 80,
+        severity: 'critical',
+        is_active: 1,
+        created_at: Date.now()
+      });
+
+      const autoNodeId = 'node-new-agent-99';
+      const ingestRes = await request(app)
+        .post('/api/metrics/ingest')
+        .send({
+          nodeId: autoNodeId,
+          name: 'Auto Discovered Node',
+          hostname: 'agent-server-99.internal',
+          ip: '192.168.1.99',
+          os: 'Debian 12',
+          cpuPercent: 88.5, // Violates rule >= 80
+          perCoreCpu: [85, 92],
+          ramUsedGb: 12.0,
+          ramTotalGb: 16.0,
+          networkInMbps: 300,
+          networkOutMbps: 350,
+          containerTotal: 5,
+          containerRunning: 4,
+          containerFailed: 1
+        });
+
+      expect(ingestRes.status).toBe(201);
+      expect(ingestRes.body.success).toBe(true);
+
+      // Verify auto-registered node exists
+      const nodeRes = await request(app).get(`/api/nodes/${autoNodeId}`);
+      expect(nodeRes.status).toBe(200);
+      expect(nodeRes.body.id).toBe(autoNodeId);
+      expect(nodeRes.body.hostname).toBe('agent-server-99.internal');
+
+      // Verify incident was automatically triggered
+      const incidentsRes = await request(app).get(`/api/incidents?nodeId=${autoNodeId}`);
+      expect(incidentsRes.status).toBe(200);
+      expect(incidentsRes.body.length).toBeGreaterThan(0);
+      expect(incidentsRes.body[0].alertRuleId).toBe('rule-high-cpu-ingest');
+    });
+
+    it('POST /api/metrics/ingest respects NODE_INGEST_SECRET when configured', async () => {
+      process.env.NODE_INGEST_SECRET = 'super-secret-token-123';
+
+      try {
+        // Without header -> 401
+        const rejectRes = await request(app)
+          .post('/api/metrics/ingest')
+          .send({
+            nodeId,
+            cpuPercent: 30
+          });
+        expect(rejectRes.status).toBe(401);
+
+        // With X-Apex-Node-Secret -> 201
+        const authRes = await request(app)
+          .post('/api/metrics/ingest')
+          .set('X-Apex-Node-Secret', 'super-secret-token-123')
+          .send({
+            nodeId,
+            cpuPercent: 30,
+            ramUsedGb: 8,
+            ramTotalGb: 16
+          });
+        expect(authRes.status).toBe(201);
+
+        // With X-API-Key -> 201
+        const apiKeyRes = await request(app)
+          .post('/api/metrics/ingest')
+          .set('X-API-Key', 'super-secret-token-123')
+          .send({
+            nodeId,
+            cpuPercent: 32,
+            ramUsedGb: 8,
+            ramTotalGb: 16
+          });
+        expect(apiKeyRes.status).toBe(201);
+      } finally {
+        delete process.env.NODE_INGEST_SECRET;
+      }
+    });
   });
 
   describe('Alert Rules API Endpoints (/api/alerts)', () => {

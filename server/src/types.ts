@@ -12,6 +12,7 @@ export interface NodeRecord {
   total_ram_gb: number;
   tags: string; // JSON string e.g. '["edge", "gateway"]'
   created_at: number; // epoch ms
+  last_seen?: number; // epoch ms
 }
 
 export interface MetricSnapshotRecord {
