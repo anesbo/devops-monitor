@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useServerState } from '../../context/ServerContext';
 import { ViewTab, ServerNode } from '../../types';
+import { ThemeToggle } from '../ThemeToggle';
 
 export const Sidebar: React.FC = () => {
   const {
@@ -81,24 +82,24 @@ export const Sidebar: React.FC = () => {
 
   return (
     <aside
-      className={`relative flex flex-col bg-[#0c1322] border-r border-slate-800/80 transition-all duration-300 ease-in-out z-30 select-none ${
+      className={`relative flex flex-col bg-white border-r border-slate-200 text-slate-800 dark:bg-[#0c1322] dark:border-slate-800/80 dark:text-slate-100 transition-all duration-300 ease-in-out z-30 select-none ${
         isSidebarCollapsed ? 'w-20' : 'w-64'
       }`}
     >
       {/* Brand Header */}
-      <div className="h-16 flex items-center px-4 border-b border-slate-800/80 justify-between">
+      <div className="h-16 flex items-center px-4 border-b border-slate-200 dark:border-slate-800/80 justify-between">
         <div className="flex items-center gap-3 overflow-hidden cursor-pointer" onClick={() => setActiveTab('overview')}>
           <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-600 via-blue-600 to-emerald-400 shadow-lg shadow-cyan-500/20 text-white shrink-0">
             <Activity className="w-5 h-5 animate-pulse" />
-            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ring-[#0c1322]" />
+            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ring-white dark:ring-[#0c1322]" />
           </div>
 
           {!isSidebarCollapsed && (
             <div className="flex flex-col truncate">
-              <span className="font-bold text-lg tracking-tight bg-gradient-to-r from-white via-slate-200 to-cyan-300 bg-clip-text text-transparent">
+              <span className="font-bold text-lg tracking-tight bg-gradient-to-r from-slate-900 via-slate-700 to-cyan-600 dark:from-white dark:via-slate-200 dark:to-cyan-300 bg-clip-text text-transparent">
                 ApexPulse
               </span>
-              <span className="text-[10px] tracking-wider uppercase font-semibold text-slate-400">
+              <span className="text-[10px] tracking-wider uppercase font-semibold text-slate-500 dark:text-slate-400">
                 Observability Fleet
               </span>
             </div>
@@ -108,7 +109,7 @@ export const Sidebar: React.FC = () => {
 
       {/* Navigation Links */}
       <div className="py-4 px-3 space-y-1">
-        <div className={`px-2 pb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 ${isSidebarCollapsed ? 'hidden' : 'block'}`}>
+        <div className={`px-2 pb-2 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 ${isSidebarCollapsed ? 'hidden' : 'block'}`}>
           Navigation
         </div>
 
@@ -121,12 +122,12 @@ export const Sidebar: React.FC = () => {
               title={isSidebarCollapsed ? item.label : undefined}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all group ${
                 isActive
-                  ? 'bg-gradient-to-r from-cyan-500/15 to-blue-500/10 text-cyan-400 border border-cyan-500/30 shadow-sm shadow-cyan-500/10'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 border border-transparent'
+                  ? 'bg-cyan-50 text-cyan-600 border border-cyan-300 dark:bg-gradient-to-r dark:from-cyan-500/15 dark:to-blue-500/10 dark:text-cyan-400 dark:border-cyan-500/30 shadow-sm shadow-cyan-500/10'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-transparent dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-800/50'
               } ${isSidebarCollapsed ? 'justify-center' : 'justify-between'}`}
             >
               <div className="flex items-center gap-3 min-w-0">
-                <span className={`transition-colors ${isActive ? 'text-cyan-400' : 'text-slate-400 group-hover:text-slate-200'}`}>
+                <span className={`transition-colors ${isActive ? 'text-cyan-600 dark:text-cyan-400' : 'text-slate-500 group-hover:text-slate-800 dark:text-slate-400 dark:group-hover:text-slate-200'}`}>
                   {item.icon}
                 </span>
                 {!isSidebarCollapsed && (
@@ -135,7 +136,7 @@ export const Sidebar: React.FC = () => {
               </div>
 
               {!isSidebarCollapsed && item.badge !== undefined && (
-                <span className={`px-2 py-0.5 text-xs rounded-full ${item.badgeColor || 'bg-slate-800 text-slate-300'}`}>
+                <span className={`px-2 py-0.5 text-xs rounded-full ${item.badgeColor || 'bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300'}`}>
                   {item.badge}
                 </span>
               )}
@@ -149,10 +150,10 @@ export const Sidebar: React.FC = () => {
       </div>
 
       {/* Node Quick Selector Section */}
-      <div className="flex-1 flex flex-col min-h-0 px-3 py-2 border-t border-slate-800/60 overflow-hidden">
-        <div className={`flex items-center justify-between px-2 pb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 ${isSidebarCollapsed ? 'hidden' : 'flex'}`}>
+      <div className="flex-1 flex flex-col min-h-0 px-3 py-2 border-t border-slate-200 dark:border-slate-800/60 overflow-hidden">
+        <div className={`flex items-center justify-between px-2 pb-2 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 ${isSidebarCollapsed ? 'hidden' : 'flex'}`}>
           <span>Quick Node Target</span>
-          <span className="text-[10px] font-mono text-cyan-400/80">{nodes.length} online</span>
+          <span className="text-[10px] font-mono text-cyan-600 dark:text-cyan-400/80">{nodes.length} online</span>
         </div>
 
         <div className="flex-1 overflow-y-auto pr-1 space-y-1">
@@ -161,16 +162,16 @@ export const Sidebar: React.FC = () => {
             onClick={() => setSelectedNodeId('all')}
             className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
               selectedNodeId === 'all'
-                ? 'bg-slate-800/90 text-cyan-300 border border-cyan-500/40 shadow-sm'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-850/60 border border-transparent'
+                ? 'bg-cyan-50 text-cyan-700 border border-cyan-300 shadow-sm dark:bg-slate-800/90 dark:text-cyan-300 dark:border-cyan-500/40'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-transparent dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-850/60'
             } ${isSidebarCollapsed ? 'justify-center' : ''}`}
             title="All Cluster Nodes"
           >
-            <ShieldCheck className={`w-4 h-4 shrink-0 ${selectedNodeId === 'all' ? 'text-cyan-400' : 'text-slate-500'}`} />
+            <ShieldCheck className={`w-4 h-4 shrink-0 ${selectedNodeId === 'all' ? 'text-cyan-600 dark:text-cyan-400' : 'text-slate-400 dark:text-slate-500'}`} />
             {!isSidebarCollapsed && (
               <div className="flex items-center justify-between w-full truncate">
                 <span className="truncate">Entire Cluster (All)</span>
-                <span className="text-[10px] font-mono text-slate-400 bg-slate-800 px-1.5 py-0.5 rounded">mesh</span>
+                <span className="text-[10px] font-mono text-slate-500 bg-slate-200/70 dark:text-slate-400 dark:bg-slate-800 px-1.5 py-0.5 rounded">mesh</span>
               </div>
             )}
           </button>
@@ -190,8 +191,8 @@ export const Sidebar: React.FC = () => {
                 title={`${node.name} (${node.region}) - ${node.latencyMs}ms`}
                 className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs transition-all ${
                   isSelected
-                    ? 'bg-slate-800/90 text-white border border-cyan-500/40 shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-850/50 border border-transparent'
+                    ? 'bg-cyan-50/80 text-slate-900 border border-cyan-400 shadow-sm dark:bg-slate-800/90 dark:text-white dark:border-cyan-500/40'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-transparent dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-850/50'
                 } ${isSidebarCollapsed ? 'justify-center' : ''}`}
               >
                 <div className="relative shrink-0 flex items-center justify-center">
@@ -201,11 +202,11 @@ export const Sidebar: React.FC = () => {
                 {!isSidebarCollapsed && (
                   <div className="flex items-center justify-between w-full min-w-0">
                     <div className="flex flex-col text-left truncate mr-2">
-                      <span className="font-medium text-slate-200 truncate">{node.name}</span>
-                      <span className="text-[10px] font-mono text-slate-400 truncate">{node.role} • {node.ip}</span>
+                      <span className="font-medium text-slate-800 dark:text-slate-200 truncate">{node.name}</span>
+                      <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 truncate">{node.role} • {node.ip}</span>
                     </div>
                     <div className="shrink-0 text-right">
-                      <span className="text-[10px] font-mono font-semibold text-slate-400">{node.latencyMs}ms</span>
+                      <span className="text-[10px] font-mono font-semibold text-slate-500 dark:text-slate-400">{node.latencyMs}ms</span>
                     </div>
                   </div>
                 )}
@@ -216,10 +217,12 @@ export const Sidebar: React.FC = () => {
       </div>
 
       {/* Collapse Toggle & Footer */}
-      <div className="p-3 border-t border-slate-800/80 bg-[#090e1a]/60">
+      <div className="p-3 border-t border-slate-200 dark:border-slate-800/80 bg-slate-50 dark:bg-[#090e1a]/60 space-y-2">
+        <ThemeToggle variant="sidebar" isCollapsed={isSidebarCollapsed} />
+
         <button
           onClick={toggleSidebar}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800/70 border border-slate-800/80 transition-all"
+          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-800/70 dark:border-slate-800/80 transition-all"
         >
           {isSidebarCollapsed ? (
             <ChevronRight className="w-4 h-4" />
@@ -233,7 +236,7 @@ export const Sidebar: React.FC = () => {
 
         {!isSidebarCollapsed && (
           <div className="mt-2 text-center">
-            <span className="text-[10px] font-mono text-slate-400">
+            <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400">
               v2.4.0 • Cluster Sync Active
             </span>
           </div>

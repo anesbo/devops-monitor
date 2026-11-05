@@ -262,7 +262,7 @@ export const SparklineChart: React.FC<SparklineChartProps> = ({
   if (!data || data.length === 0) {
     return (
       <div
-        className={`flex items-center justify-center rounded-lg border border-slate-800/80 bg-slate-900/40 text-xs text-slate-500 ${className}`}
+        className={`flex items-center justify-center rounded-lg border border-slate-200 bg-slate-100/60 text-xs text-slate-500 dark:border-slate-800/80 dark:bg-slate-900/40 dark:text-slate-500 ${className}`}
         style={{ height }}
       >
         No telemetry data available
@@ -275,7 +275,7 @@ export const SparklineChart: React.FC<SparklineChartProps> = ({
       ref={containerRef}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      className={`relative w-full select-none overflow-hidden rounded-lg bg-slate-950/40 p-1 group ${className}`}
+      className={`relative w-full select-none overflow-hidden rounded-lg bg-slate-50/60 border border-slate-200/60 dark:bg-slate-950/40 dark:border-transparent p-1 group ${className}`}
       style={{ height }}
     >
       <svg
@@ -304,8 +304,8 @@ export const SparklineChart: React.FC<SparklineChartProps> = ({
           y1={paddingTop}
           x2={viewBoxWidth - paddingX}
           y2={paddingTop}
-          stroke="#334155"
-          strokeOpacity="0.25"
+          className="stroke-slate-300 dark:stroke-slate-700"
+          strokeOpacity="0.4"
           strokeDasharray="2 4"
         />
         <line
@@ -313,8 +313,8 @@ export const SparklineChart: React.FC<SparklineChartProps> = ({
           y1={viewBoxHeight - paddingBottom}
           x2={viewBoxWidth - paddingX}
           y2={viewBoxHeight - paddingBottom}
-          stroke="#334155"
-          strokeOpacity="0.35"
+          className="stroke-slate-300 dark:stroke-slate-700"
+          strokeOpacity="0.6"
         />
 
         {/* Gradient Area Fill */}
@@ -346,15 +346,15 @@ export const SparklineChart: React.FC<SparklineChartProps> = ({
               cx={points[minIndex].x}
               cy={points[minIndex].y}
               r="3.5"
-              fill="#0f172a"
-              stroke="#38bdf8"
+              className="fill-white dark:fill-[#0f172a]"
+              stroke="#0284c7"
               strokeWidth="2"
             />
             <circle
               cx={points[minIndex].x}
               cy={points[minIndex].y}
               r="1.5"
-              fill="#38bdf8"
+              fill="#0284c7"
             />
           </g>
         )}
@@ -366,7 +366,7 @@ export const SparklineChart: React.FC<SparklineChartProps> = ({
               cx={points[maxIndex].x}
               cy={points[maxIndex].y}
               r="4"
-              fill="#0f172a"
+              className="fill-white dark:fill-[#0f172a]"
               stroke={colorConfig.stroke}
               strokeWidth="2"
             />
@@ -406,7 +406,7 @@ export const SparklineChart: React.FC<SparklineChartProps> = ({
               cx={hoveredPoint.x}
               cy={hoveredPoint.y}
               r="4.5"
-              fill="#090d16"
+              className="fill-white dark:fill-[#090d16]"
               stroke={colorConfig.stroke}
               strokeWidth="2.5"
             />
@@ -423,26 +423,26 @@ export const SparklineChart: React.FC<SparklineChartProps> = ({
             top: `${Math.max(20, (hoveredPoint.y / viewBoxHeight) * (containerRef.current?.clientHeight || height) - 8)}px`,
           }}
         >
-          <div className="flex flex-col items-center rounded-md border border-slate-700/80 bg-slate-900/95 px-2.5 py-1 shadow-2xl backdrop-blur-md">
+          <div className="flex flex-col items-center rounded-md border border-slate-200 bg-white text-slate-900 px-2.5 py-1 shadow-xl backdrop-blur-md dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:shadow-2xl">
             {label && (
-              <span className="text-[10px] font-medium uppercase tracking-wider text-slate-400">
+              <span className="text-[10px] font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
                 {label}
               </span>
             )}
             <div className="flex items-baseline gap-1">
-              <span className="text-sm font-bold tracking-tight text-white font-mono">
+              <span className="text-sm font-bold tracking-tight text-slate-900 dark:text-slate-100 font-mono">
                 {displayFormatter(hoveredPoint.raw.value)}
               </span>
-              {unit && <span className="text-[10px] font-semibold text-slate-400">{unit}</span>}
+              {unit && <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400">{unit}</span>}
             </div>
             {hoveredPoint.raw.timestamp && (
-              <span className="text-[9px] text-slate-400 font-mono">
+              <span className="text-[9px] text-slate-500 dark:text-slate-400 font-mono">
                 {formatTimestamp(hoveredPoint.raw.timestamp)}
               </span>
             )}
           </div>
           {/* Tooltip arrow */}
-          <div className="h-1.5 w-2 bg-slate-800 rotate-45 transform -translate-y-1 border-r border-b border-slate-700/80" />
+          <div className="h-1.5 w-2 bg-white dark:bg-slate-900 rotate-45 transform -translate-y-1 border-r border-b border-slate-200 dark:border-slate-800" />
         </div>
       )}
     </div>

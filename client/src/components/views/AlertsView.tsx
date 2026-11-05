@@ -180,20 +180,20 @@ export const AlertsView: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* View Header with Action */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 bg-[#0b1222]/90 border border-slate-800/90 rounded-2xl shadow-lg">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 bg-white border border-slate-200 text-slate-900 dark:bg-[#0b1222]/90 dark:border-slate-800/90 dark:text-slate-100 rounded-2xl shadow-lg transition-colors duration-200">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-[11px] font-mono uppercase tracking-wider text-rose-400 font-bold flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-rose-400 animate-pulse" />
+            <span className="text-[11px] font-mono uppercase tracking-wider text-rose-600 dark:text-rose-400 font-bold flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
               Alert Rules & Anomaly Engine
             </span>
-            <span className="text-slate-600">•</span>
-            <span className="text-xs font-mono text-slate-400">
+            <span className="text-slate-400 dark:text-slate-600">•</span>
+            <span className="text-xs font-mono text-slate-500 dark:text-slate-400">
               {activeRulesCount} active rules running
             </span>
           </div>
-          <h1 className="text-xl font-bold text-white flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5 text-rose-400" />
+          <h1 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5 text-rose-500 dark:text-rose-400" />
             Alert Rule Management & Trigger Log
           </h1>
         </div>
@@ -209,27 +209,27 @@ export const AlertsView: React.FC = () => {
       </div>
 
       {/* SECTION 1: Active Alert Rules Management Table */}
-      <div className="rounded-2xl border border-slate-800/90 bg-[#0b1222]/90 shadow-xl overflow-hidden space-y-0">
-        <div className="p-5 border-b border-slate-800/80 flex items-center justify-between">
+      <div className="rounded-2xl border border-slate-200 bg-white shadow-xl dark:border-slate-800/90 dark:bg-[#0b1222]/90 overflow-hidden space-y-0 transition-colors duration-200">
+        <div className="p-5 border-b border-slate-200 dark:border-slate-800/80 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+            <div className="p-2 rounded-xl bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20">
               <Sliders className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-white tracking-tight">Active Alert Rules</h2>
-              <p className="text-xs text-slate-400">
+              <h2 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Active Alert Rules</h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
                 Evaluation thresholds continuously monitored against streaming telemetry
               </p>
             </div>
           </div>
-          <span className="text-xs font-mono text-slate-400">
+          <span className="text-xs font-mono text-slate-500 dark:text-slate-400">
             {rules.length} Total Rules
           </span>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-[#0e162a] border-b border-slate-800 text-slate-400 font-mono uppercase text-[11px]">
+            <thead className="bg-slate-100 border-b border-slate-200 text-slate-600 dark:bg-[#0e162a] dark:border-slate-800 dark:text-slate-400 font-mono uppercase text-[11px]">
               <tr>
                 <th className="py-3 px-4 font-semibold">Rule Name</th>
                 <th className="py-3 px-4 font-semibold">Metric</th>
@@ -241,7 +241,7 @@ export const AlertsView: React.FC = () => {
                 <th className="py-3 px-4 font-semibold text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/80 font-mono">
+            <tbody className="divide-y divide-slate-200 dark:divide-slate-800/80 font-mono">
               {rules.map((rule) => {
                 const isCrit = rule.severity === 'critical';
                 const isWarn = rule.severity === 'warning';
@@ -249,35 +249,35 @@ export const AlertsView: React.FC = () => {
                 return (
                   <tr 
                     key={rule.id}
-                    className="hover:bg-[#111a30] transition-colors"
+                    className="hover:bg-slate-50 dark:hover:bg-[#111a30] transition-colors"
                   >
-                    <td className="py-3.5 px-4 font-sans font-bold text-white">
+                    <td className="py-3.5 px-4 font-sans font-bold text-slate-900 dark:text-white">
                       {rule.name}
                     </td>
                     <td className="py-3.5 px-4">
-                      <span className="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-cyan-400 font-semibold uppercase text-[10px]">
+                      <span className="px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-cyan-700 dark:bg-slate-900 dark:border-slate-800 dark:text-cyan-400 font-semibold uppercase text-[10px]">
                         {rule.metricName}
                       </span>
                     </td>
-                    <td className="py-3.5 px-4 font-bold text-slate-200">
+                    <td className="py-3.5 px-4 font-bold text-slate-800 dark:text-slate-200">
                       {rule.operator} {rule.threshold}
                       {rule.metricName === 'cpu' || rule.metricName === 'ram' ? '%' : rule.metricName === 'network' ? ' Mbps' : ''}
                     </td>
                     <td className="py-3.5 px-4">
                       <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${
                         isCrit 
-                          ? 'bg-rose-500/20 text-rose-400 border-rose-500/30' 
+                          ? 'bg-rose-500/20 text-rose-600 dark:text-rose-400 border-rose-500/30' 
                           : isWarn 
-                          ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' 
-                          : 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30'
+                          ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/30' 
+                          : 'bg-cyan-500/20 text-cyan-600 dark:text-cyan-400 border-cyan-500/30'
                       }`}>
                         {rule.severity}
                       </span>
                     </td>
-                    <td className="py-3.5 px-4 text-slate-300 font-sans text-xs">
+                    <td className="py-3.5 px-4 text-slate-700 dark:text-slate-300 font-sans text-xs">
                       {rule.nodeName || 'All Nodes (Global)'}
                     </td>
-                    <td className="py-3.5 px-4 text-slate-400 text-[11px]">
+                    <td className="py-3.5 px-4 text-slate-500 dark:text-slate-400 text-[11px]">
                       {rule.duration || '1m window'}
                     </td>
                     <td className="py-3.5 px-4">
@@ -286,11 +286,11 @@ export const AlertsView: React.FC = () => {
                         onClick={() => handleToggleRule(rule.id)}
                         className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold transition-all cursor-pointer ${
                           rule.isActive 
-                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-sm shadow-emerald-500/10'
-                            : 'bg-slate-800 text-slate-400 border border-slate-700'
+                            ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 shadow-sm shadow-emerald-500/10'
+                            : 'bg-slate-100 text-slate-500 border border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700'
                         }`}
                       >
-                        <span className={`w-1.5 h-1.5 rounded-full ${rule.isActive ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500'}`} />
+                        <span className={`w-1.5 h-1.5 rounded-full ${rule.isActive ? 'bg-emerald-500 dark:bg-emerald-400 animate-pulse' : 'bg-slate-400 dark:bg-slate-500'}`} />
                         <span>{rule.isActive ? 'ENABLED' : 'DISABLED'}</span>
                       </button>
                     </td>
@@ -299,7 +299,7 @@ export const AlertsView: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => handleOpenEdit(rule)}
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:hover:text-white dark:hover:bg-slate-800 transition-colors"
                           title="Edit Rule"
                         >
                           <Edit3 className="w-3.5 h-3.5" />
@@ -307,7 +307,7 @@ export const AlertsView: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => handleDeleteRule(rule.id)}
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:text-rose-400 dark:hover:bg-rose-500/10 transition-colors"
                           title="Delete Rule"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -323,15 +323,15 @@ export const AlertsView: React.FC = () => {
       </div>
 
       {/* SECTION 2: Alert History & Triggered Conditions Log */}
-      <div className="rounded-2xl border border-slate-800/90 bg-[#0b1222]/90 shadow-xl overflow-hidden space-y-0">
-        <div className="p-5 border-b border-slate-800/80 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="rounded-2xl border border-slate-200 bg-white shadow-xl dark:border-slate-800/90 dark:bg-[#0b1222]/90 overflow-hidden space-y-0 transition-colors duration-200">
+        <div className="p-5 border-b border-slate-200 dark:border-slate-800/80 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/20">
+            <div className="p-2 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
               <History className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-white tracking-tight">Alert Trigger History & Conditions Log</h2>
-              <p className="text-xs text-slate-400">
+              <h2 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Alert Trigger History & Conditions Log</h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
                 Audited timeline of metric threshold violations and triage states
               </p>
             </div>
@@ -347,7 +347,7 @@ export const AlertsView: React.FC = () => {
                 placeholder="Filter triggers..."
                 value={historySearch}
                 onChange={e => setHistorySearch(e.target.value)}
-                className="w-full bg-[#11192b] border border-slate-800 rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500/60 font-mono"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-cyan-500/60 dark:bg-[#11192b] dark:border-slate-800 dark:text-slate-200 dark:placeholder-slate-500 font-mono"
               />
             </div>
 
@@ -355,7 +355,7 @@ export const AlertsView: React.FC = () => {
             <select
               value={historySeverityFilter}
               onChange={e => setHistorySeverityFilter(e.target.value)}
-              className="bg-[#11192b] border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-cyan-500/60 cursor-pointer"
+              className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-cyan-500/60 dark:bg-[#11192b] dark:border-slate-800 dark:text-slate-300 cursor-pointer"
             >
               <option value="all">All Severities</option>
               <option value="critical">Critical</option>
@@ -364,12 +364,12 @@ export const AlertsView: React.FC = () => {
             </select>
 
             {/* Status Tabs */}
-            <div className="flex bg-[#11192b] border border-slate-800 rounded-xl p-0.5 text-xs font-medium">
+            <div className="flex bg-slate-100 border border-slate-200 rounded-xl p-0.5 text-xs font-medium dark:bg-[#11192b] dark:border-slate-800">
               <button
                 type="button"
                 onClick={() => setHistoryStatusFilter('all')}
                 className={`px-3 py-1 rounded-lg transition-colors ${
-                  historyStatusFilter === 'all' ? 'bg-slate-700 text-white font-bold' : 'text-slate-400 hover:text-slate-200'
+                  historyStatusFilter === 'all' ? 'bg-white text-slate-900 shadow-sm font-bold dark:bg-slate-700 dark:text-white' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
                 }`}
               >
                 All
@@ -378,7 +378,7 @@ export const AlertsView: React.FC = () => {
                 type="button"
                 onClick={() => setHistoryStatusFilter('active')}
                 className={`px-3 py-1 rounded-lg transition-colors ${
-                  historyStatusFilter === 'active' ? 'bg-rose-500/20 text-rose-300 font-bold' : 'text-slate-400 hover:text-slate-200'
+                  historyStatusFilter === 'active' ? 'bg-rose-500/20 text-rose-600 dark:text-rose-300 font-bold' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
                 }`}
               >
                 Open ({alerts.filter(a => !a.resolved).length})
@@ -387,7 +387,7 @@ export const AlertsView: React.FC = () => {
                 type="button"
                 onClick={() => setHistoryStatusFilter('resolved')}
                 className={`px-3 py-1 rounded-lg transition-colors ${
-                  historyStatusFilter === 'resolved' ? 'bg-emerald-500/20 text-emerald-300 font-bold' : 'text-slate-400 hover:text-slate-200'
+                  historyStatusFilter === 'resolved' ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 font-bold' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
                 }`}
               >
                 Resolved
@@ -412,7 +412,7 @@ export const AlertsView: React.FC = () => {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-[#0e162a] border-b border-slate-800 text-slate-400 font-mono uppercase text-[11px]">
+              <thead className="bg-slate-100 border-b border-slate-200 text-slate-600 dark:bg-[#0e162a] dark:border-slate-800 dark:text-slate-400 font-mono uppercase text-[11px]">
                 <tr>
                   <th className="py-3 px-4 font-semibold">Timestamp</th>
                   <th className="py-3 px-4 font-semibold">Severity</th>
@@ -422,46 +422,46 @@ export const AlertsView: React.FC = () => {
                   <th className="py-3 px-4 font-semibold text-right">Triage Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/80">
+              <tbody className="divide-y divide-slate-200 dark:divide-slate-800/80">
                 {filteredHistory.map((item) => {
                   const isCrit = item.severity === 'critical';
                   const isWarn = item.severity === 'warning';
 
                   return (
-                    <tr key={item.id} className="hover:bg-[#111a30] transition-colors">
-                      <td className="py-3.5 px-4 font-mono text-slate-400 text-[11px] whitespace-nowrap">
+                    <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-[#111a30] transition-colors">
+                      <td className="py-3.5 px-4 font-mono text-slate-500 dark:text-slate-400 text-[11px] whitespace-nowrap">
                         {item.timestamp}
                       </td>
                       <td className="py-3.5 px-4">
                         <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase border ${
                           isCrit 
-                            ? 'bg-rose-500/20 text-rose-400 border-rose-500/30' 
+                            ? 'bg-rose-500/20 text-rose-600 dark:text-rose-400 border-rose-500/30' 
                             : isWarn 
-                            ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' 
-                            : 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30'
+                            ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/30' 
+                            : 'bg-cyan-500/20 text-cyan-600 dark:text-cyan-400 border-cyan-500/30'
                         }`}>
                           {item.severity}
                         </span>
                       </td>
                       <td className="py-3.5 px-4">
-                        <div className="font-bold text-white text-xs">{item.title}</div>
-                        <div className="text-[11px] text-slate-300 mt-0.5 max-w-md">{item.description}</div>
+                        <div className="font-bold text-slate-900 dark:text-white text-xs">{item.title}</div>
+                        <div className="text-[11px] text-slate-600 dark:text-slate-300 mt-0.5 max-w-md">{item.description}</div>
                         {item.currentValue && item.threshold && (
-                          <div className="mt-1 font-mono text-[10px] text-cyan-400">
+                          <div className="mt-1 font-mono text-[10px] text-cyan-600 dark:text-cyan-400">
                             Current Value: {item.currentValue} | Threshold: {item.threshold}
                           </div>
                         )}
                       </td>
-                      <td className="py-3.5 px-4 font-mono text-slate-300">
+                      <td className="py-3.5 px-4 font-mono text-slate-700 dark:text-slate-300">
                         {item.nodeName || item.nodeId}
                       </td>
                       <td className="py-3.5 px-4">
                         <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase ${
                           item.resolved 
-                            ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                            ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
                             : item.acknowledged
-                            ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
-                            : 'bg-rose-500/15 text-rose-400 border border-rose-500/30 animate-pulse'
+                            ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30'
+                            : 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30 animate-pulse'
                         }`}>
                           {item.resolved ? 'RESOLVED' : item.acknowledged ? 'INVESTIGATING' : 'OPEN'}
                         </span>
@@ -472,7 +472,7 @@ export const AlertsView: React.FC = () => {
                             <button
                               type="button"
                               onClick={() => acknowledgeAlert(item.id)}
-                              className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium transition-colors"
+                              className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200 text-xs font-medium transition-colors"
                             >
                               Ack
                             </button>
@@ -481,14 +481,14 @@ export const AlertsView: React.FC = () => {
                             <button
                               type="button"
                               onClick={() => resolveAlert(item.id)}
-                              className="px-2.5 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30 text-xs font-bold transition-colors cursor-pointer"
+                              className="px-2.5 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-xs font-bold transition-colors cursor-pointer"
                             >
                               Resolve
                             </button>
                           )}
                           {item.resolved && (
-                            <span className="text-[11px] text-slate-500 font-mono flex items-center justify-end gap-1">
-                              <Check className="w-3.5 h-3.5 text-emerald-400" />
+                            <span className="text-[11px] text-slate-400 dark:text-slate-500 font-mono flex items-center justify-end gap-1">
+                              <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                               Closed
                             </span>
                           )}

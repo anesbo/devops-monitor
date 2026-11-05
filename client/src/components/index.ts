@@ -19,3 +19,6 @@ export type { ToastItem } from './AlertToast';
 export { RegisterNodeModal } from './RegisterNodeModal';
 export { ShimmerCard, TableRowSkeleton, EmptyState } from './SkeletonLoader';
 
+export { ThemeToggle, useTheme } from './ThemeToggle';
+export type { ThemeToggleProps, Theme } from './ThemeToggle';
+

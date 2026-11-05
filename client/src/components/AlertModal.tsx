@@ -227,22 +227,22 @@ export const AlertModal: React.FC<AlertModalProps> = ({
       {/* Backdrop */}
       <div
         onClick={onClose}
-        className="fixed inset-0 bg-slate-950/80 backdrop-blur-md transition-opacity"
+        className="fixed inset-0 bg-slate-900/50 dark:bg-slate-950/80 backdrop-blur-sm dark:backdrop-blur-md transition-opacity"
       />
 
       {/* Modal Dialog Content */}
-      <div className="relative w-full max-w-xl rounded-2xl border border-slate-800 bg-slate-900/95 p-6 shadow-2xl backdrop-blur-xl z-10 my-8">
+      <div className="relative w-full max-w-xl rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/98 dark:bg-slate-900/95 p-6 shadow-2xl backdrop-blur-xl z-10 my-8">
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-800/80">
+        <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800/80">
           <div className="flex items-center gap-2.5">
-            <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-cyan-500/10 border border-cyan-500/30 text-cyan-400">
+            <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-cyan-500/10 border border-cyan-500/30 text-cyan-600 dark:text-cyan-400">
               <Bell className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-white tracking-tight">
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">
                 {isEditing ? 'Configure Alert Rule' : 'Create Threshold Alert Rule'}
               </h2>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-500 dark:text-slate-400">
                 Define automated conditions to monitor server fleet vitals
               </p>
             </div>
@@ -250,7 +250,7 @@ export const AlertModal: React.FC<AlertModalProps> = ({
           <button
             onClick={onClose}
             type="button"
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:hover:text-white dark:hover:bg-slate-800 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -260,7 +260,7 @@ export const AlertModal: React.FC<AlertModalProps> = ({
         <form onSubmit={handleSubmit} className="mt-5 space-y-4 text-xs">
           {/* Rule Title */}
           <div>
-            <label className="block text-slate-300 font-semibold mb-1.5 font-mono uppercase tracking-wider text-[11px]">
+            <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1.5 font-mono uppercase tracking-wider text-[11px]">
               Rule Title & Name *
             </label>
             <input
@@ -271,18 +271,18 @@ export const AlertModal: React.FC<AlertModalProps> = ({
                 if (errors.name) setErrors((prev) => ({ ...prev, name: '' }));
               }}
               placeholder="e.g. Critical CPU Burst on Production API"
-              className={`w-full px-3.5 py-2.5 rounded-lg bg-slate-950/80 border text-slate-100 placeholder-slate-500 focus:outline-none transition-all ${
+              className={`w-full px-3.5 py-2.5 rounded-lg bg-slate-50 dark:bg-slate-950/80 border text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none transition-all ${
                 errors.name
                   ? 'border-rose-500 focus:border-rose-500'
-                  : 'border-slate-800 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/40'
+                  : 'border-slate-200 dark:border-slate-800 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/40'
               }`}
             />
-            {errors.name && <p className="mt-1 text-rose-400 text-[11px]">{errors.name}</p>}
+            {errors.name && <p className="mt-1 text-rose-500 dark:text-rose-400 text-[11px]">{errors.name}</p>}
           </div>
 
           {/* Metric Selector Grid */}
           <div>
-            <label className="block text-slate-300 font-semibold mb-1.5 font-mono uppercase tracking-wider text-[11px]">
+            <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1.5 font-mono uppercase tracking-wider text-[11px]">
               Telemetry Metric *
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -296,27 +296,27 @@ export const AlertModal: React.FC<AlertModalProps> = ({
                     onClick={() => handleMetricChange(metric.id)}
                     className={`flex items-center gap-2 p-2.5 rounded-xl border text-left transition-all ${
                       isSelected
-                        ? 'border-cyan-500 bg-cyan-500/10 text-white shadow-[0_0_12px_rgba(6,182,212,0.15)]'
-                        : 'border-slate-800 bg-slate-950/50 text-slate-400 hover:text-slate-200 hover:border-slate-700'
+                        ? 'border-cyan-500 bg-cyan-50 dark:bg-cyan-500/10 text-cyan-900 dark:text-white shadow-[0_0_12px_rgba(6,182,212,0.15)]'
+                        : 'border-slate-200 bg-slate-50/70 text-slate-600 hover:text-slate-900 hover:border-slate-300 dark:border-slate-800 dark:bg-slate-950/50 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:border-slate-700'
                     }`}
                   >
-                    <Icon className={`w-4 h-4 shrink-0 ${isSelected ? 'text-cyan-400' : 'text-slate-500'}`} />
+                    <Icon className={`w-4 h-4 shrink-0 ${isSelected ? 'text-cyan-600 dark:text-cyan-400' : 'text-slate-400 dark:text-slate-500'}`} />
                     <div className="flex flex-col">
                       <span className="font-semibold text-xs leading-snug">{metric.label}</span>
-                      <span className="text-[10px] text-slate-500 font-mono">({metric.unit})</span>
+                      <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono">({metric.unit})</span>
                     </div>
                   </button>
                 );
               })}
             </div>
-            <p className="mt-1.5 text-[11px] text-slate-400">{activeMetricConfig.description}</p>
+            <p className="mt-1.5 text-[11px] text-slate-500 dark:text-slate-400">{activeMetricConfig.description}</p>
           </div>
 
           {/* Operator and Threshold Value */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 rounded-xl bg-slate-950/60 border border-slate-800">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800">
             {/* Operator */}
             <div>
-              <label className="block text-slate-300 font-semibold mb-1 font-mono uppercase tracking-wider text-[10px]">
+              <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1 font-mono uppercase tracking-wider text-[10px]">
                 Condition Operator
               </label>
               <div className="grid grid-cols-4 gap-1">
@@ -327,8 +327,8 @@ export const AlertModal: React.FC<AlertModalProps> = ({
                     onClick={() => setOperator(op)}
                     className={`py-1.5 rounded-lg font-mono font-bold text-center text-sm transition-all ${
                       operator === op
-                        ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40'
-                        : 'bg-slate-900 text-slate-400 border border-slate-800 hover:text-white'
+                        ? 'bg-cyan-500/20 text-cyan-700 dark:text-cyan-400 border border-cyan-500/40'
+                        : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800 hover:text-slate-900 dark:hover:text-white shadow-sm'
                     }`}
                   >
                     {op}
@@ -340,10 +340,10 @@ export const AlertModal: React.FC<AlertModalProps> = ({
             {/* Threshold Slider and Numeric Input */}
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="text-slate-300 font-semibold font-mono uppercase tracking-wider text-[10px]">
+                <label className="text-slate-700 dark:text-slate-300 font-semibold font-mono uppercase tracking-wider text-[10px]">
                   Threshold Value
                 </label>
-                <span className="font-mono font-bold text-cyan-400 text-sm">
+                <span className="font-mono font-bold text-cyan-600 dark:text-cyan-400 text-sm">
                   {threshold} {activeMetricConfig.unit}
                 </span>
               </div>
@@ -355,7 +355,7 @@ export const AlertModal: React.FC<AlertModalProps> = ({
                   step={activeMetricConfig.step}
                   value={threshold}
                   onChange={(e) => setThreshold(Number(e.target.value))}
-                  className="flex-1 accent-cyan-400 h-1.5 bg-slate-800 rounded-lg cursor-pointer"
+                  className="flex-1 accent-cyan-500 h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg cursor-pointer"
                 />
                 <input
                   type="number"
@@ -363,16 +363,16 @@ export const AlertModal: React.FC<AlertModalProps> = ({
                   max={activeMetricConfig.max}
                   value={threshold}
                   onChange={(e) => setThreshold(Number(e.target.value))}
-                  className="w-16 px-2 py-1 rounded bg-slate-900 border border-slate-700 text-white font-mono text-center text-xs focus:outline-none focus:border-cyan-500"
+                  className="w-16 px-2 py-1 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-mono text-center text-xs focus:outline-none focus:border-cyan-500"
                 />
               </div>
-              {errors.threshold && <p className="mt-1 text-rose-400 text-[10px]">{errors.threshold}</p>}
+              {errors.threshold && <p className="mt-1 text-rose-500 dark:text-rose-400 text-[10px]">{errors.threshold}</p>}
             </div>
           </div>
 
           {/* Severity Level Pills */}
           <div>
-            <label className="block text-slate-300 font-semibold mb-1.5 font-mono uppercase tracking-wider text-[11px]">
+            <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1.5 font-mono uppercase tracking-wider text-[11px]">
               Alert Severity Level *
             </label>
             <div className="grid grid-cols-3 gap-2">
@@ -381,11 +381,11 @@ export const AlertModal: React.FC<AlertModalProps> = ({
                 onClick={() => setSeverity('info')}
                 className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg border font-semibold text-xs transition-all ${
                   severity === 'info'
-                    ? 'border-cyan-500/50 bg-cyan-500/15 text-cyan-300 shadow-[0_0_10px_rgba(6,182,212,0.2)]'
-                    : 'border-slate-800 bg-slate-950/40 text-slate-400 hover:text-slate-200'
+                    ? 'border-cyan-500/50 bg-cyan-50 text-cyan-800 dark:bg-cyan-500/15 dark:text-cyan-300 shadow-[0_0_10px_rgba(6,182,212,0.15)] dark:shadow-[0_0_10px_rgba(6,182,212,0.2)]'
+                    : 'border-slate-200 bg-slate-50 text-slate-600 hover:text-slate-900 dark:border-slate-800 dark:bg-slate-950/40 dark:text-slate-400 dark:hover:text-slate-200'
                 }`}
               >
-                <Info className="w-3.5 h-3.5 text-cyan-400" />
+                <Info className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" />
                 <span>Info</span>
               </button>
 
@@ -394,11 +394,11 @@ export const AlertModal: React.FC<AlertModalProps> = ({
                 onClick={() => setSeverity('warning')}
                 className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg border font-semibold text-xs transition-all ${
                   severity === 'warning'
-                    ? 'border-amber-500/50 bg-amber-500/15 text-amber-300 shadow-[0_0_10px_rgba(245,158,11,0.2)]'
-                    : 'border-slate-800 bg-slate-950/40 text-slate-400 hover:text-slate-200'
+                    ? 'border-amber-500/50 bg-amber-50 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300 shadow-[0_0_10px_rgba(245,158,11,0.15)] dark:shadow-[0_0_10px_rgba(245,158,11,0.2)]'
+                    : 'border-slate-200 bg-slate-50 text-slate-600 hover:text-slate-900 dark:border-slate-800 dark:bg-slate-950/40 dark:text-slate-400 dark:hover:text-slate-200'
                 }`}
               >
-                <AlertCircle className="w-3.5 h-3.5 text-amber-400" />
+                <AlertCircle className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
                 <span>Warning</span>
               </button>
 
@@ -407,11 +407,11 @@ export const AlertModal: React.FC<AlertModalProps> = ({
                 onClick={() => setSeverity('critical')}
                 className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg border font-semibold text-xs transition-all ${
                   severity === 'critical'
-                    ? 'border-rose-500/50 bg-rose-500/15 text-rose-300 shadow-[0_0_10px_rgba(244,63,94,0.2)]'
-                    : 'border-slate-800 bg-slate-950/40 text-slate-400 hover:text-slate-200'
+                    ? 'border-rose-500/50 bg-rose-50 text-rose-800 dark:bg-rose-500/15 dark:text-rose-300 shadow-[0_0_10px_rgba(244,63,94,0.15)] dark:shadow-[0_0_10px_rgba(244,63,94,0.2)]'
+                    : 'border-slate-200 bg-slate-50 text-slate-600 hover:text-slate-900 dark:border-slate-800 dark:bg-slate-950/40 dark:text-slate-400 dark:hover:text-slate-200'
                 }`}
               >
-                <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />
+                <AlertTriangle className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
                 <span>Critical</span>
               </button>
             </div>
@@ -421,7 +421,7 @@ export const AlertModal: React.FC<AlertModalProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {/* Target Node */}
             <div>
-              <label className="block text-slate-300 font-semibold mb-1 font-mono uppercase tracking-wider text-[10px]">
+              <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1 font-mono uppercase tracking-wider text-[10px]">
                 Target Server Node
               </label>
               <div className="relative">
@@ -429,7 +429,7 @@ export const AlertModal: React.FC<AlertModalProps> = ({
                 <select
                   value={targetNodeId}
                   onChange={(e) => setTargetNodeId(e.target.value)}
-                  className="w-full pl-8 pr-3 py-2 bg-slate-950/80 rounded-lg border border-slate-800 text-slate-200 text-xs focus:outline-none focus:border-cyan-500 cursor-pointer"
+                  className="w-full pl-8 pr-3 py-2 bg-slate-50 dark:bg-slate-950/80 rounded-lg border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-200 text-xs focus:outline-none focus:border-cyan-500 cursor-pointer"
                 >
                   <option value="all">Global (All Nodes)</option>
                   {nodes
@@ -445,13 +445,13 @@ export const AlertModal: React.FC<AlertModalProps> = ({
 
             {/* Sustained Duration */}
             <div>
-              <label className="block text-slate-300 font-semibold mb-1 font-mono uppercase tracking-wider text-[10px]">
+              <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1 font-mono uppercase tracking-wider text-[10px]">
                 Sustained Condition Window
               </label>
               <select
                 value={duration}
                 onChange={(e) => setDuration(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-950/80 rounded-lg border border-slate-800 text-slate-200 text-xs focus:outline-none focus:border-cyan-500 cursor-pointer"
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950/80 rounded-lg border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-200 text-xs focus:outline-none focus:border-cyan-500 cursor-pointer"
               >
                 <option value="immediate">Immediate (Single breach)</option>
                 <option value="1m">Sustained for 1 minute</option>
@@ -463,10 +463,10 @@ export const AlertModal: React.FC<AlertModalProps> = ({
           </div>
 
           {/* Active / Disabled Toggle */}
-          <div className="flex items-center justify-between p-3 rounded-lg bg-slate-950/40 border border-slate-800">
+          <div className="flex items-center justify-between p-3 rounded-lg bg-slate-50/70 dark:bg-slate-950/40 border border-slate-200 dark:border-slate-800">
             <div>
-              <span className="font-semibold text-slate-200 block">Rule Status</span>
-              <span className="text-[11px] text-slate-400">
+              <span className="font-semibold text-slate-900 dark:text-slate-200 block">Rule Status</span>
+              <span className="text-[11px] text-slate-500 dark:text-slate-400">
                 {isActive ? 'Rule is active and actively evaluating incoming telemetry snapshots' : 'Rule is currently paused'}
               </span>
             </div>
@@ -474,7 +474,7 @@ export const AlertModal: React.FC<AlertModalProps> = ({
               type="button"
               onClick={() => setIsActive(!isActive)}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-                isActive ? 'bg-cyan-500' : 'bg-slate-700'
+                isActive ? 'bg-cyan-500' : 'bg-slate-300 dark:bg-slate-700'
               }`}
             >
               <span
@@ -486,12 +486,12 @@ export const AlertModal: React.FC<AlertModalProps> = ({
           </div>
 
           {/* Modal Actions */}
-          <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
+          <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-200 dark:border-slate-800">
             <button
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="px-4 py-2 rounded-lg border border-slate-800 bg-slate-900 text-slate-300 hover:text-white hover:bg-slate-800 transition-colors font-semibold"
+              className="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors font-semibold"
             >
               Cancel
             </button>
