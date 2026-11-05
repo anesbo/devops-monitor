@@ -2,6 +2,8 @@ import React from 'react';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import { ThemeToggle, applyTheme, getInitialTheme } from '../components/ThemeToggle';
+import { SparklineChart } from '../components/SparklineChart';
+import { StatusBadge } from '../components/StatusBadge';
 import { ServerProvider } from '../context/ServerContext';
 
 describe('ThemeToggle Component & Dual-Theme Verification Tests', () => {
@@ -212,6 +214,56 @@ describe('ThemeToggle Component & Dual-Theme Verification Tests', () => {
 
       expect(document.documentElement.classList.contains('light')).toBe(true);
       expect(localStorage.getItem('theme')).toBe('light');
+    });
+  });
+
+  describe('6. System Color Scheme Preference Detection', () => {
+    it('detects light mode system preference when storage is empty', () => {
+      window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+        matches: query === '(prefers-color-scheme: light)',
+        media: query,
+        onchange: null,
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+      }));
+
+      const theme = getInitialTheme();
+      expect(theme).toBe('light');
+    });
+  });
+
+  describe('7. Dual-Theme Verification for Core UI Components', () => {
+    it('renders SparklineChart gracefully under both light and dark themes', () => {
+      // Light mode verification
+      applyTheme('light');
+      const { container, rerender } = render(
+        <SparklineChart data={[20, 45, 80, 60]} color="cyan" height={60} label="CPU" />
+      );
+      expect(container.querySelector('svg')).toBeInTheDocument();
+      expect(container.querySelectorAll('path').length).toBeGreaterThanOrEqual(2);
+
+      // Dark mode verification
+      applyTheme('dark');
+      rerender(
+        <SparklineChart data={[20, 45, 80, 60]} color="cyan" height={60} label="CPU" />
+      );
+      expect(container.querySelector('svg')).toBeInTheDocument();
+      expect(container.querySelectorAll('path').length).toBeGreaterThanOrEqual(2);
+    });
+
+    it('renders StatusBadge components gracefully under both light and dark themes', () => {
+      // Light mode
+      applyTheme('light');
+      const { rerender } = render(<StatusBadge status="healthy" label="Online" />);
+      expect(screen.getByText('Online')).toBeInTheDocument();
+
+      // Dark mode
+      applyTheme('dark');
+      rerender(<StatusBadge status="critical" label="Critical Failure" />);
+      expect(screen.getByText('Critical Failure')).toBeInTheDocument();
     });
   });
 });
