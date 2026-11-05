@@ -1,0 +1,10 @@
+node_modules
+dist
+*.log
+*.db
+*.sqlite
+*.db-wal
+*.db-shm
+*.db-journal
+test-*.sqlite
+.env
