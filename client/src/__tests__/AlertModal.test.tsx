@@ -2,6 +2,7 @@ import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { AlertModal } from '../components/AlertModal';
+import { AlertRule, AlertMetricType } from '../types';
 
 describe('AlertModal Component Tests', () => {
   it('does not render when isOpen is false', () => {
@@ -84,15 +85,15 @@ describe('AlertModal Component Tests', () => {
   });
 
   it('populates initialRule data when editing an existing rule', () => {
-    const existingRule = {
+    const existingRule: AlertRule = {
       id: 'rule-test-existing',
       name: 'Existing Database Latency Rule',
       nodeId: 'node-eu-west-1',
       nodeName: 'eu-west-db-replica-02',
-      metricName: 'network',
+      metricName: 'network' as AlertMetricType,
       operator: '>=',
       threshold: 650,
-      severity: 'critical' as const,
+      severity: 'critical',
       isActive: true,
       duration: '5m',
       createdAt: Date.now(),
