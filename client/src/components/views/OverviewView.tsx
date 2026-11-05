@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { 
   Cpu, 
+  Layers, 
   HardDrive, 
   Clock, 
   Activity, 
@@ -8,85 +9,160 @@ import {
   ArrowUpRight, 
   ArrowDownRight, 
   Server, 
-  Layers,
-  Radio,
-  Zap
+  Zap, 
+  Wifi, 
+  TrendingUp, 
+  AlertTriangle, 
+  CheckCircle2, 
+  ArrowRight,
+  RefreshCw
 } from 'lucide-react';
 import { useServerState } from '../../context/ServerContext';
-import { ServerNode } from '../../types';
-import { SparklineChart, StatusBadge, CoreMatrix } from '../index';
+import { SparklineChart, StatusBadge } from '../index';
+import { ShimmerCard, SparklineSkeleton } from '../SkeletonLoader';
 
 export const OverviewView: React.FC = () => {
   const {
     telemetry,
     nodes,
-    setSelectedNodeId,
+    isLoadingNodes,
     selectedNodeId,
+    setSelectedNodeId,
     selectedNode,
     metricsHistory,
-    setActiveTab
+    isLoadingMetrics,
+    alerts,
+    acknowledgeAlert,
+    resolveAlert,
+    setActiveTab,
+    manualRefresh,
   } = useServerState();
 
-  const getStatusBadge = (status: ServerNode['status']) => {
-    switch (status) {
-      case 'healthy':
-        return <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">Healthy</span>;
-      case 'warning':
-        return <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/30">Degraded</span>;
-      case 'critical':
-        return <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/30 animate-pulse">Critical</span>;
-      case 'offline':
-        return <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-500/10 text-slate-400 border border-slate-500/30">Offline</span>;
-    }
-  };
+  // Active or unresolved incidents feed
+  const recentIncidents = useMemo(() => {
+    return alerts
+      .filter(a => !a.resolved)
+      .slice(0, 5);
+  }, [alerts]);
 
+  // Sparkline data series
+  const cpuSparklineData = useMemo(() => {
+    return metricsHistory.map(m => ({
+      timestamp: m.timestamp,
+      value: m.cpu
+    }));
+  }, [metricsHistory]);
+
+  const memorySparklineData = useMemo(() => {
+    return metricsHistory.map(m => ({
+      timestamp: m.timestamp,
+      value: m.memory
+    }));
+  }, [metricsHistory]);
+
+  const networkSparklineData = useMemo(() => {
+    return metricsHistory.map(m => ({
+      timestamp: m.timestamp,
+      value: Math.round((m.networkIn + m.networkOut) * 10) / 10
+    }));
+  }, [metricsHistory]);
+
+  // Current values
   const currentCpu = selectedNode ? selectedNode.cpu : telemetry.avgCpu;
   const currentMem = selectedNode ? selectedNode.memory : telemetry.avgMemory;
   const currentDisk = selectedNode ? selectedNode.disk : telemetry.avgDisk;
   const currentLatency = selectedNode ? selectedNode.latencyMs : telemetry.avgLatencyMs;
 
+  // Approximate RX and TX breakdown from throughput
+  const totalThroughput = telemetry.totalThroughputMbps || 268.4;
+  const rxThroughput = Math.round(totalThroughput * 0.44 * 10) / 10;
+  const txThroughput = Math.round(totalThroughput * 0.56 * 10) / 10;
+
+  // Node status breakdown
+  const onlineCount = nodes.filter(n => n.status === 'healthy').length;
+  const warningCount = nodes.filter(n => n.status === 'warning').length;
+  const criticalCount = nodes.filter(n => n.status === 'critical').length;
+  const offlineCount = nodes.filter(n => n.status === 'offline').length;
+
+  // Total RAM GB in cluster or selected node
+  const totalClusterRamGb = useMemo(() => {
+    if (selectedNode) return selectedNode.totalMemoryGb;
+    return nodes.reduce((sum, n) => sum + (n.totalMemoryGb || 64), 0);
+  }, [nodes, selectedNode]);
+
+  const usedRamGb = Math.round((totalClusterRamGb * (currentMem / 100)) * 10) / 10;
+
+  if (isLoadingNodes && nodes.length === 0) {
+    return (
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <ShimmerCard key={i} />
+          ))}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <SparklineSkeleton key={i} height={200} />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
-      {/* Cluster Banner / Target Notice */}
-      <div className="relative overflow-hidden rounded-xl border border-slate-800/80 bg-gradient-to-r from-[#0d1628] via-[#0e1b33] to-[#0c182c] p-6 shadow-xl">
-        <div className="absolute right-0 top-0 -mt-6 -mr-6 w-56 h-56 rounded-full bg-cyan-500/5 blur-3xl pointer-events-none" />
-        
+      {/* Target Focus Banner */}
+      <div className="relative overflow-hidden rounded-2xl border border-slate-800/80 bg-gradient-to-r from-[#0c1322] via-[#0f1930] to-[#0c1527] p-6 shadow-xl backdrop-blur-sm">
+        <div className="absolute right-0 top-0 -mt-8 -mr-8 w-64 h-64 rounded-full bg-cyan-500/10 blur-3xl pointer-events-none" />
+        <div className="absolute left-1/3 bottom-0 -mb-8 w-48 h-48 rounded-full bg-emerald-500/5 blur-3xl pointer-events-none" />
+
         <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-xs uppercase tracking-wider font-bold text-cyan-400">
-                {selectedNode ? 'Target Node Inspection' : 'Cluster Telemetry Mesh'}
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className="text-[11px] uppercase tracking-wider font-bold text-cyan-400 flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+                {selectedNode ? 'Focused Target Inspection' : 'Cluster Mesh Observability'}
               </span>
-              <span className="h-1.5 w-1.5 rounded-full bg-cyan-400" />
+              <span className="text-slate-600">•</span>
               <span className="text-xs font-mono text-slate-400">
-                {selectedNode ? selectedNode.region : `${telemetry.totalNodes} Managed Instances`}
+                {selectedNode ? `${selectedNode.region} (${selectedNode.ip})` : `${nodes.length} Fleet Nodes Connected`}
               </span>
             </div>
-            <h1 className="text-2xl font-bold text-white tracking-tight">
-              {selectedNode ? selectedNode.name : 'Real-Time Global Observability'}
+            <h1 className="text-2xl lg:text-3xl font-extrabold text-white tracking-tight">
+              {selectedNode ? selectedNode.name : 'Unified Observability & Fleet Telemetry'}
             </h1>
-            <p className="text-xs text-slate-400 mt-1 max-w-2xl">
-              {selectedNode 
-                ? `Role: ${selectedNode.role.toUpperCase()} | Host: ${selectedNode.hostname} | Uptime: ${selectedNode.uptime}` 
-                : telemetry.systemMessage}
+            <p className="text-xs text-slate-400 mt-1 max-w-2xl leading-relaxed">
+              {selectedNode
+                ? `Role: ${selectedNode.role.toUpperCase()} | Host: ${selectedNode.hostname} | Uptime: ${selectedNode.uptime}`
+                : telemetry.systemMessage || 'Autonomous telemetry engine streaming live metrics and detecting anomaly events'}
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2.5">
             {selectedNodeId !== 'all' && (
               <button
+                type="button"
                 onClick={() => setSelectedNodeId('all')}
-                className="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all"
+                className="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all cursor-pointer shadow-sm"
               >
                 Reset to All Nodes
               </button>
             )}
             <button
+              type="button"
+              onClick={manualRefresh}
+              className="p-2 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-colors"
+              title="Manual Telemetry Poll"
+            >
+              <RefreshCw className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
               onClick={() => setActiveTab('alerts')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold shadow-lg transition-all ${
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold shadow-lg transition-all cursor-pointer ${
                 telemetry.activeAlertsCount > 0
-                  ? 'bg-gradient-to-r from-rose-600 to-rose-700 text-white shadow-rose-900/40 hover:from-rose-500 hover:to-rose-600'
-                  : 'bg-gradient-to-r from-emerald-600 to-emerald-700 text-white shadow-emerald-900/40 hover:from-emerald-500 hover:to-emerald-600'
+                  ? 'bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white shadow-rose-900/40'
+                  : 'bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white shadow-emerald-900/40'
               }`}
             >
               <ShieldAlert className="w-4 h-4" />
@@ -96,23 +172,64 @@ export const OverviewView: React.FC = () => {
         </div>
       </div>
 
-      {/* Top Metric Telemetry Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* CPU Utilization */}
-        <div className="p-5 rounded-xl bg-[#0d1628]/90 border border-slate-800 hover:border-slate-700/80 transition-all shadow-sm">
+      {/* 5 Primary Global Summary KPI Stat Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        {/* Card 1: Total Nodes */}
+        <div 
+          onClick={() => setActiveTab('nodes')}
+          className="p-5 rounded-2xl bg-[#0b1222]/90 border border-slate-800/90 hover:border-cyan-500/50 transition-all duration-200 shadow-md cursor-pointer group"
+        >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-400">CPU Compute Load</span>
-            <div className={`p-2 rounded-lg ${currentCpu > 85 ? 'bg-rose-500/10 text-rose-400' : 'bg-cyan-500/10 text-cyan-400'}`}>
+            <span className="text-xs font-semibold text-slate-400 group-hover:text-cyan-400 transition-colors">Total Nodes</span>
+            <div className="p-2 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+              <Server className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-3 flex items-baseline gap-2">
+            <span className="text-3xl font-extrabold text-white font-mono tracking-tight">{nodes.length}</span>
+            <span className="text-[11px] font-mono text-emerald-400">99.8% Online</span>
+          </div>
+          {/* Node Breakdown Badges */}
+          <div className="mt-3.5 flex items-center gap-1.5 flex-wrap">
+            <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+              {onlineCount} OK
+            </span>
+            {warningCount > 0 && (
+              <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-amber-500/15 text-amber-400 border border-amber-500/30">
+                {warningCount} DEG
+              </span>
+            )}
+            {criticalCount > 0 && (
+              <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-rose-500/15 text-rose-400 border border-rose-500/30 animate-pulse">
+                {criticalCount} CRIT
+              </span>
+            )}
+            {offlineCount > 0 && (
+              <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-slate-700/30 text-slate-400 border border-slate-700/50">
+                {offlineCount} OFF
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Card 2: Cluster CPU Load % */}
+        <div className="p-5 rounded-2xl bg-[#0b1222]/90 border border-slate-800/90 hover:border-slate-700 transition-all duration-200 shadow-md">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-slate-400">Cluster CPU Load</span>
+            <div className={`p-2 rounded-xl ${
+              currentCpu > 85 ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' : 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20'
+            }`}>
               <Cpu className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-3xl font-extrabold tracking-tight text-white font-mono">{currentCpu}%</span>
-            <span className="text-xs font-medium text-slate-400">
-              {selectedNode ? `${selectedNode.cores} Cores` : 'Cluster avg'}
+            <span className="text-3xl font-extrabold text-white font-mono tracking-tight">{currentCpu}%</span>
+            <span className={`text-[11px] font-mono font-semibold flex items-center ${currentCpu > 70 ? 'text-amber-400' : 'text-emerald-400'}`}>
+              <TrendingUp className="w-3 h-3 mr-0.5" />
+              {currentCpu > 70 ? 'Elevated' : 'Optimal'}
             </span>
           </div>
-          <div className="mt-3 w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+          <div className="mt-3 w-full bg-slate-800/80 rounded-full h-1.5 overflow-hidden">
             <div 
               className={`h-full rounded-full transition-all duration-500 ${
                 currentCpu > 85 ? 'bg-rose-500' : currentCpu > 70 ? 'bg-amber-400' : 'bg-cyan-400'
@@ -120,23 +237,29 @@ export const OverviewView: React.FC = () => {
               style={{ width: `${Math.min(100, currentCpu)}%` }}
             />
           </div>
+          <div className="mt-2 flex justify-between text-[10px] font-mono text-slate-400">
+            <span>Peak: {Math.min(99, Math.round(currentCpu * 1.2))}%</span>
+            <span>{selectedNode ? `${selectedNode.cores} Cores` : 'Cluster Avg'}</span>
+          </div>
         </div>
 
-        {/* Memory Pressure */}
-        <div className="p-5 rounded-xl bg-[#0d1628]/90 border border-slate-800 hover:border-slate-700/80 transition-all shadow-sm">
+        {/* Card 3: Cluster RAM Used */}
+        <div className="p-5 rounded-2xl bg-[#0b1222]/90 border border-slate-800/90 hover:border-slate-700 transition-all duration-200 shadow-md">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-400">Memory Utilization</span>
-            <div className={`p-2 rounded-lg ${currentMem > 85 ? 'bg-rose-500/10 text-rose-400' : 'bg-blue-500/10 text-blue-400'}`}>
+            <span className="text-xs font-semibold text-slate-400">Cluster RAM Used</span>
+            <div className={`p-2 rounded-xl ${
+              currentMem > 85 ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+            }`}>
               <Layers className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-3xl font-extrabold tracking-tight text-white font-mono">{currentMem}%</span>
-            <span className="text-xs font-medium text-slate-400">
-              {selectedNode ? `${selectedNode.totalMemoryGb} GB RAM` : 'Cluster avg'}
+            <span className="text-3xl font-extrabold text-white font-mono tracking-tight">{currentMem}%</span>
+            <span className="text-[11px] font-mono text-slate-400">
+              {usedRamGb}/{totalClusterRamGb} GB
             </span>
           </div>
-          <div className="mt-3 w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+          <div className="mt-3 w-full bg-slate-800/80 rounded-full h-1.5 overflow-hidden">
             <div 
               className={`h-full rounded-full transition-all duration-500 ${
                 currentMem > 85 ? 'bg-rose-500' : currentMem > 70 ? 'bg-amber-400' : 'bg-blue-400'
@@ -144,189 +267,324 @@ export const OverviewView: React.FC = () => {
               style={{ width: `${Math.min(100, currentMem)}%` }}
             />
           </div>
+          <div className="mt-2 flex justify-between text-[10px] font-mono text-slate-400">
+            <span>Free: {Math.round((totalClusterRamGb - usedRamGb) * 10) / 10} GB</span>
+            <span>Allocated</span>
+          </div>
         </div>
 
-        {/* Storage / Disk Volume */}
-        <div className="p-5 rounded-xl bg-[#0d1628]/90 border border-slate-800 hover:border-slate-700/80 transition-all shadow-sm">
+        {/* Card 4: Network Throughput rx/tx */}
+        <div className="p-5 rounded-2xl bg-[#0b1222]/90 border border-slate-800/90 hover:border-slate-700 transition-all duration-200 shadow-md">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-400">Disk I/O Capacity</span>
-            <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400">
-              <HardDrive className="w-4 h-4" />
+            <span className="text-xs font-semibold text-slate-400">Network Throughput</span>
+            <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              <Wifi className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-3 flex items-baseline gap-1.5">
+            <span className="text-3xl font-extrabold text-white font-mono tracking-tight">{totalThroughput}</span>
+            <span className="text-xs font-mono text-slate-400 font-semibold">Mbps</span>
+          </div>
+          {/* Separate RX and TX stats */}
+          <div className="mt-3 grid grid-cols-2 gap-2 pt-2 border-t border-slate-800/70 text-[11px] font-mono">
+            <div className="flex items-center gap-1 text-slate-300">
+              <ArrowDownRight className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+              <span>RX: <strong className="text-white">{rxThroughput}</strong></span>
+            </div>
+            <div className="flex items-center gap-1 text-slate-300">
+              <ArrowUpRight className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+              <span>TX: <strong className="text-white">{txThroughput}</strong></span>
+            </div>
+          </div>
+        </div>
+
+        {/* Card 5: Active Incidents Count */}
+        <div 
+          onClick={() => setActiveTab('alerts')}
+          className={`p-5 rounded-2xl border transition-all duration-200 shadow-md cursor-pointer group ${
+            telemetry.activeAlertsCount > 0
+              ? 'bg-[#180a0e]/90 border-rose-500/40 hover:border-rose-400'
+              : 'bg-[#0b1222]/90 border-slate-800/90 hover:border-emerald-500/40'
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-slate-400 group-hover:text-rose-400 transition-colors">Active Incidents</span>
+            <div className={`p-2 rounded-xl ${
+              telemetry.activeAlertsCount > 0 ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30 animate-pulse' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+            }`}>
+              <ShieldAlert className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-3xl font-extrabold tracking-tight text-white font-mono">{currentDisk}%</span>
-            <span className="text-xs font-medium text-slate-400">Mounted volumes</span>
+            <span className={`text-3xl font-extrabold font-mono tracking-tight ${
+              telemetry.activeAlertsCount > 0 ? 'text-rose-400' : 'text-emerald-400'
+            }`}>
+              {telemetry.activeAlertsCount}
+            </span>
+            <span className="text-[11px] font-mono text-slate-400">Unresolved</span>
           </div>
-          <div className="mt-3 w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
-            <div 
-              className="h-full rounded-full bg-emerald-400 transition-all duration-500"
-              style={{ width: `${Math.min(100, currentDisk)}%` }}
+          <div className="mt-3 flex items-center justify-between text-[11px] text-slate-400 pt-2 border-t border-slate-800/70">
+            <span className="text-rose-400 font-mono font-semibold">{criticalCount} Critical</span>
+            <span className="text-amber-400 font-mono font-semibold">{warningCount} Warning</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Aggregate Live Sparklines for Cluster CPU, RAM, and Network */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        {/* Live Cluster CPU Sparkline */}
+        <div className="p-5 rounded-2xl bg-[#0b1222]/90 border border-slate-800/90 shadow-lg relative overflow-hidden">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-cyan-400" />
+              <h3 className="text-sm font-bold text-white tracking-tight">Cluster CPU Compute History</h3>
+            </div>
+            <span className="text-xs font-mono font-bold text-cyan-400">{currentCpu}% current</span>
+          </div>
+          <p className="text-[11px] text-slate-400 mb-3">Time-series load across sample cycle (0-100%)</p>
+          <div className="h-32 w-full">
+            <SparklineChart
+              data={cpuSparklineData}
+              color="cyan"
+              height={125}
+              unit="%"
+              showMinMax
+              showArea
+              showCrosshair
+              min={0}
+              max={100}
             />
           </div>
         </div>
 
-        {/* Latency / SLA */}
-        <div className="p-5 rounded-xl bg-[#0d1628]/90 border border-slate-800 hover:border-slate-700/80 transition-all shadow-sm">
+        {/* Live Cluster RAM Sparkline */}
+        <div className="p-5 rounded-2xl bg-[#0b1222]/90 border border-slate-800/90 shadow-lg relative overflow-hidden">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-blue-400" />
+              <h3 className="text-sm font-bold text-white tracking-tight">Cluster RAM Utilization History</h3>
+            </div>
+            <span className="text-xs font-mono font-bold text-blue-400">{currentMem}% current</span>
+          </div>
+          <p className="text-[11px] text-slate-400 mb-3">Memory saturation and buffer pressure (0-100%)</p>
+          <div className="h-32 w-full">
+            <SparklineChart
+              data={memorySparklineData}
+              color="blue"
+              height={125}
+              unit="%"
+              showMinMax
+              showArea
+              showCrosshair
+              min={0}
+              max={100}
+            />
+          </div>
+        </div>
+
+        {/* Live Network Throughput Sparkline */}
+        <div className="p-5 rounded-2xl bg-[#0b1222]/90 border border-slate-800/90 shadow-lg relative overflow-hidden">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
+              <h3 className="text-sm font-bold text-white tracking-tight">Network I/O Throughput Stream</h3>
+            </div>
+            <span className="text-xs font-mono font-bold text-emerald-400">{totalThroughput} Mbps</span>
+          </div>
+          <p className="text-[11px] text-slate-400 mb-3">Aggregated interface rx/tx bandwidth rate</p>
+          <div className="h-32 w-full">
+            <SparklineChart
+              data={networkSparklineData}
+              color="emerald"
+              height={125}
+              unit=" Mbps"
+              showMinMax
+              showArea
+              showCrosshair
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Split Section: Quick Node Status Grid & Recent Incidents Feed */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Quick Node Status Grid (2 cols on large) */}
+        <div className="lg:col-span-2 p-6 rounded-2xl bg-[#0b1222]/90 border border-slate-800/90 shadow-lg space-y-4">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-400">Network Latency (RTT)</span>
-            <div className={`p-2 rounded-lg ${currentLatency > 100 ? 'bg-rose-500/10 text-rose-400' : 'bg-purple-500/10 text-purple-400'}`}>
-              <Clock className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-3xl font-extrabold tracking-tight text-white font-mono">{currentLatency}</span>
-            <span className="text-xs font-semibold text-slate-400 font-mono">ms</span>
-            <span className={`text-[11px] font-medium ml-auto ${currentLatency < 50 ? 'text-emerald-400' : 'text-amber-400'}`}>
-              {currentLatency < 50 ? 'Sub-50ms SLA' : 'Elevated'}
-            </span>
-          </div>
-          <div className="mt-3 flex items-center justify-between text-[11px] text-slate-400">
-            <span>Throughput: {telemetry.totalThroughputMbps} MB/s</span>
-            <span>Packet drop: 0.00%</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Telemetry Sparkline Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* CPU Telemetry Sparkline */}
-        <div className="p-5 rounded-xl bg-[#0d1628]/90 border border-slate-800 shadow-sm flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <h2 className="text-sm font-bold text-white flex items-center gap-2">
-                <Cpu className="w-4 h-4 text-cyan-400" />
-                CPU Utilization Curve
-              </h2>
-              <p className="text-[11px] text-slate-400">
-                Smooth cubic spline with interactive crosshair and min/max telemetry points
-              </p>
-            </div>
-            <span className="text-xs font-mono font-bold text-cyan-400 bg-cyan-950/60 px-2.5 py-1 rounded-lg border border-cyan-800/60">
-              {currentCpu}% Live
-            </span>
-          </div>
-
-          <SparklineChart
-            data={metricsHistory.map((m) => ({ timestamp: m.timestamp, value: m.cpu }))}
-            color={currentCpu > 85 ? 'rose' : currentCpu > 70 ? 'amber' : 'cyan'}
-            height={110}
-            unit="%"
-            label="CPU Utilization"
-            min={0}
-            max={100}
-            showMinMax
-            showArea
-            showCrosshair
-          />
-        </div>
-
-        {/* Memory Telemetry Sparkline */}
-        <div className="p-5 rounded-xl bg-[#0d1628]/90 border border-slate-800 shadow-sm flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <h2 className="text-sm font-bold text-white flex items-center gap-2">
-                <HardDrive className="w-4 h-4 text-blue-400" />
-                RAM Consumption Curve
-              </h2>
-              <p className="text-[11px] text-slate-400">
-                Continuous memory buffer telemetry with gradient area fill
-              </p>
-            </div>
-            <span className="text-xs font-mono font-bold text-blue-400 bg-blue-950/60 px-2.5 py-1 rounded-lg border border-blue-800/60">
-              {currentMem}% Live
-            </span>
-          </div>
-
-          <SparklineChart
-            data={metricsHistory.map((m) => ({ timestamp: m.timestamp, value: m.memory }))}
-            color="blue"
-            height={110}
-            unit="%"
-            label="Memory Used"
-            min={0}
-            max={100}
-            showMinMax
-            showArea
-            showCrosshair
-          />
-        </div>
-      </div>
-
-      {/* Per-Core Heat Matrix */}
-      <CoreMatrix
-        coreCount={selectedNode ? selectedNode.cores : 16}
-        title={selectedNode ? `Hardware Cores: ${selectedNode.name} (${selectedNode.cores} Cores)` : 'Cluster Per-Core Heat Matrix'}
-      />
-
-      {/* Fleet Node Matrix Preview */}
-      <div className="p-6 rounded-xl bg-[#0d1628]/90 border border-slate-800 shadow-sm space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-base font-bold text-white flex items-center gap-2">
-              <Server className="w-4 h-4 text-cyan-400" />
-              Fleet Node Cluster Health
-            </h2>
-            <p className="text-xs text-slate-400 mt-0.5">
-              Click any node to focus telemetry and inspect detailed vitals
-            </p>
-          </div>
-          <button
-            onClick={() => setActiveTab('nodes')}
-            className="text-xs font-semibold text-cyan-400 hover:text-cyan-300 transition-colors"
-          >
-            View All Nodes →
-          </button>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {nodes.map((node) => {
-            const isSelected = selectedNodeId === node.id;
-            return (
-              <div
-                key={node.id}
-                onClick={() => setSelectedNodeId(isSelected ? 'all' : node.id)}
-                className={`p-4 rounded-xl border transition-all cursor-pointer ${
-                  isSelected
-                    ? 'bg-slate-800/90 border-cyan-500 shadow-md shadow-cyan-500/10'
-                    : 'bg-[#101a30]/80 border-slate-800 hover:border-slate-700 hover:bg-[#131f3b]'
-                }`}
-              >
-                <div className="flex items-start justify-between">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold text-sm text-white">{node.name}</span>
-                    </div>
-                    <span className="text-[11px] font-mono text-slate-400">{node.ip} • {node.region}</span>
-                  </div>
-                  <StatusBadge status={node.status} size="sm" />
-                </div>
-
-                <div className="mt-4 grid grid-cols-3 gap-2 text-center bg-slate-900/60 p-2 rounded-lg border border-slate-800/60">
-                  <div>
-                    <span className="block text-[10px] text-slate-400">CPU</span>
-                    <span className={`text-xs font-mono font-bold ${node.cpu > 85 ? 'text-rose-400' : 'text-slate-200'}`}>
-                      {node.cpu}%
-                    </span>
-                  </div>
-                  <div>
-                    <span className="block text-[10px] text-slate-400">RAM</span>
-                    <span className={`text-xs font-mono font-bold ${node.memory > 85 ? 'text-amber-400' : 'text-slate-200'}`}>
-                      {node.memory}%
-                    </span>
-                  </div>
-                  <div>
-                    <span className="block text-[10px] text-slate-400">LATENCY</span>
-                    <span className="text-xs font-mono font-bold text-cyan-400">
-                      {node.latencyMs}ms
-                    </span>
-                  </div>
-                </div>
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                <Server className="w-4 h-4" />
               </div>
-            );
-          })}
+              <div>
+                <h2 className="text-base font-bold text-white tracking-tight">Fleet Node Status Matrix</h2>
+                <p className="text-xs text-slate-400">Click any server node to focus telemetry vitals</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setActiveTab('nodes')}
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-cyan-400 hover:text-cyan-300 transition-colors cursor-pointer"
+            >
+              <span>Explore All Nodes</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {nodes.map(node => {
+              const isSelected = selectedNodeId === node.id;
+              // Mini sparkline mock data for each node
+              const miniPoints = [
+                Math.max(5, node.cpu - 15),
+                Math.max(5, node.cpu - 5),
+                Math.max(5, node.cpu + 8),
+                Math.max(5, node.cpu - 2),
+                node.cpu
+              ];
+
+              return (
+                <div
+                  key={node.id}
+                  onClick={() => setSelectedNodeId(isSelected ? 'all' : node.id)}
+                  className={`p-4 rounded-xl border transition-all duration-200 cursor-pointer ${
+                    isSelected
+                      ? 'bg-[#101b33] border-cyan-500 shadow-md shadow-cyan-500/10 ring-1 ring-cyan-500/50'
+                      : 'bg-[#0f172a]/70 border-slate-800 hover:border-slate-700 hover:bg-[#121c33]'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <h4 className="text-sm font-bold text-white truncate">{node.name}</h4>
+                      <p className="text-[11px] font-mono text-slate-400 truncate mt-0.5">
+                        {node.ip} • {node.region}
+                      </p>
+                    </div>
+                    <StatusBadge status={node.status} size="sm" />
+                  </div>
+
+                  {/* Mini Sparkline + Core Stats */}
+                  <div className="mt-3 flex items-center justify-between gap-3 pt-3 border-t border-slate-800/80">
+                    <div className="flex items-center gap-3 text-xs font-mono">
+                      <div>
+                        <span className="block text-[10px] text-slate-500">CPU</span>
+                        <span className={`font-bold ${node.cpu > 85 ? 'text-rose-400' : 'text-slate-200'}`}>
+                          {node.cpu}%
+                        </span>
+                      </div>
+                      <div>
+                        <span className="block text-[10px] text-slate-500">RAM</span>
+                        <span className={`font-bold ${node.memory > 85 ? 'text-amber-400' : 'text-slate-200'}`}>
+                          {node.memory}%
+                        </span>
+                      </div>
+                      <div>
+                        <span className="block text-[10px] text-slate-500">RTT</span>
+                        <span className="font-bold text-cyan-400">
+                          {node.latencyMs}ms
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="w-20 h-9">
+                      <SparklineChart
+                        data={miniPoints}
+                        color={node.status === 'critical' ? 'rose' : node.status === 'warning' ? 'amber' : 'cyan'}
+                        height={36}
+                        showArea={false}
+                        showMinMax={false}
+                        showCrosshair={false}
+                      />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Recent Unresolved Incidents Feed (1 col on large) */}
+        <div className="p-6 rounded-2xl bg-[#0b1222]/90 border border-slate-800/90 shadow-lg space-y-4 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <ShieldAlert className="w-4 h-4 text-rose-400" />
+                <h3 className="text-base font-bold text-white tracking-tight">Recent Active Incidents</h3>
+              </div>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30">
+                {recentIncidents.length} Unresolved
+              </span>
+            </div>
+
+            {recentIncidents.length === 0 ? (
+              <div className="py-12 text-center text-slate-400">
+                <CheckCircle2 className="w-8 h-8 mx-auto text-emerald-400 mb-2 opacity-80" />
+                <p className="text-xs font-semibold text-slate-300">All Systems Operational</p>
+                <p className="text-[11px] text-slate-500 mt-0.5">No open incidents or threshold violations detected</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {recentIncidents.map(incident => (
+                  <div
+                    key={incident.id}
+                    className="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-slate-700/80 transition-all space-y-2"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <span className={`inline-block px-1.5 py-0.2 rounded text-[10px] font-mono font-bold uppercase mb-1 ${
+                          incident.severity === 'critical'
+                            ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                            : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                        }`}>
+                          {incident.severity}
+                        </span>
+                        <h4 className="text-xs font-bold text-white truncate">{incident.title}</h4>
+                      </div>
+                      <span className="text-[10px] font-mono text-slate-400 shrink-0">
+                        {incident.nodeName || incident.nodeId}
+                      </span>
+                    </div>
+
+                    <p className="text-[11px] text-slate-300 line-clamp-2 leading-relaxed">
+                      {incident.description}
+                    </p>
+
+                    <div className="flex items-center justify-between pt-2 border-t border-slate-800 text-[10px] font-mono text-slate-400">
+                      <span>{incident.timestamp}</span>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => acknowledgeAlert(incident.id)}
+                          className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
+                        >
+                          Ack
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => resolveAlert(incident.id)}
+                          className="px-2 py-0.5 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30 transition-colors font-semibold"
+                        >
+                          Resolve
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('logs')}
+            className="w-full mt-4 py-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 text-xs font-medium transition-all text-center flex items-center justify-center gap-1.5"
+          >
+            <span>View Full Live Logs & Audit Stream</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
         </div>
       </div>
     </div>
   );
 };
+
+export default OverviewView;
