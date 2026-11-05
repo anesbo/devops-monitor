@@ -1,0 +1,38 @@
+[Unit]
+Description=ApexPulse Observability Backend Server
+Documentation=https://github.com/anesbo/devops-monitor
+After=network.target network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=apexpulse
+Group=apexpulse
+WorkingDirectory=/opt/apexpulse/server
+EnvironmentFile=-/etc/apexpulse/backend.env
+Environment=NODE_ENV=production
+Environment=PORT=4000
+Environment=DB_PATH=/var/lib/apexpulse/apexpulse.db
+Environment=SIMULATION_INTERVAL_MS=3000
+ExecStartPre=/usr/bin/mkdir -p /var/lib/apexpulse
+ExecStartPre=/usr/bin/chmod 750 /var/lib/apexpulse
+ExecStart=/usr/bin/node dist/index.js
+Restart=always
+RestartSec=5s
+
+# Process and resource limits
+LimitNOFILE=65536
+LimitNPROC=4096
+TasksMax=infinity
+
+# Security Sandbox Hardening
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+ReadWritePaths=/var/lib/apexpulse /opt/apexpulse/server
+PrivateTmp=true
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

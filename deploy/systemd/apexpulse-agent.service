@@ -1,0 +1,24 @@
+[Unit]
+Description=ApexPulse Target Node Telemetry Agent
+Documentation=https://github.com/anesbo/devops-monitor
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/apex-agent
+EnvironmentFile=-/etc/apexpulse/agent.env
+Environment="APEX_SERVER_URL=http://127.0.0.1:4000"
+Environment="APEX_INTERVAL_SEC=3"
+ExecStart=/usr/bin/python3 /opt/apex-agent/apex-agent.py
+Restart=always
+RestartSec=5s
+
+# Security Hardening
+ProtectSystem=full
+ProtectHome=true
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target
